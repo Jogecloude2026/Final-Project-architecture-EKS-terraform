@@ -78,8 +78,8 @@ jobs:
 #           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 #         with:
 #           args: >
-#             -Dsonar.projectKey=terraform-infra
-#             -Dsonar.projectName="Terraform Infra"
+#             -Dsonar.projectKey=Terraform-final-project
+#             -Dsonar.projectName="Terraform-final-project"
 #             -Dsonar.exclusions=**/.terraform/**,**/*.tfstate
 #             -Dsonar.qualitygate.wait=true
 
