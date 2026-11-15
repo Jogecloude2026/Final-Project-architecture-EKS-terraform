@@ -19,7 +19,6 @@ env:
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
     
-
 jobs:
   init:
     name: terraform init & validate
