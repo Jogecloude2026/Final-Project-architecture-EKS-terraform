@@ -23,7 +23,7 @@ permissions:
          uses: aquasecurity/tfsec-action@v1.0.3
          with:
            soft_fail: true
-
+           
    sonar-scan:
      name: security scan (sonar-scan) Phase(2)
      needs: [tfsec]
