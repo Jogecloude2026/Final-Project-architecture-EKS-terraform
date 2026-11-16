@@ -26,10 +26,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # TEMPORARY: delete this step after reading the number
     - name: check secret length
+      continue-on-error: true
       run: echo "ARN length is ${#ARN}"
       env:
         ARN: ${{ secrets.AWS_OIDC_ARN }}
+
+    # TEMPORARY: delete this step after reading the subject line
+    - name: show OIDC subject
+      continue-on-error: true
+      run: |
+        TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
+        echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+' | awk '{ while (length($0)%4) $0=$0"="; print }' | base64 -d | jq -r .sub
 
     - uses: hashicorp/setup-terraform@v3
       with:
@@ -80,7 +89,7 @@ jobs:
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       with:
         args: >
-          -Dsonar.projectKey=Terraform-final-project -Dsonar.projectName="Terraform-final-project" -Dsonar.exclusions=**/.terraform/**,**/*.tfstate -Dsonar.qualitygate.wait=true
+          -Dsonar.projectKey=Terraform-final-project -Dsonar.projectName="Terraform-final-project" -Dsonar.exclusions=**/.terraform/**,**/*.tfstatee -Dsonar.qualitygate.wait=true
     # # #   # ---------------------------------------------------------------------------
     #   test:
     #     name: verify deployment
