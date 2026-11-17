@@ -118,7 +118,7 @@ jobs:
         run: terraform plan -out=tfplan
 
       - name: terraform apply
-        run: terraform apply -auto-approve tfplany>
+        run: terraform apply -auto-approve tfplan
 
     # ---------------------------------------------------------------------------
     # DESTROY — commented out on purpose. To tear everything down, an admin
