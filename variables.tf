@@ -76,6 +76,7 @@ variable "node_instance_types" {
   description = "EC2 instance types for the managed node group"
   type        = list(string)
   default     = ["t3.medium", "t3a.medium", "t3.large"]
+}
 
 variable "node_capacity_type" {
   description = "ON_DEMAND or SPOT"
