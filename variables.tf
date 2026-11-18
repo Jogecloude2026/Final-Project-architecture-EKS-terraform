@@ -87,25 +87,25 @@ variable "node_capacity_type" {
 variable "node_disk_size" {
   description = "Root disk size (GiB) of each worker node"
   type        = number
-  default     = 20
+  default     = 30
 }
 
 variable "node_desired_size" {
   description = "Desired number of worker nodes"
   type        = number
-  default     = 3 # 4 x t3.large hit the 17-pods-per-node limit
+  default     = 2 # t3.large = 2 vCPU each; keeps total under the 8 vCPU account limit
 }
 
 variable "node_min_size" {
   description = "Minimum number of worker nodes"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "node_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "key_pair_name" {
@@ -131,6 +131,12 @@ variable "argocd_chart_version" {
   description = "Argo CD Helm chart version"
   type        = string
   default     = "10.10.1"
+}
+
+variable "helm_timeout" {
+  description = "Seconds Terraform waits for each Helm release to become ready"
+  type        = number
+  default     = 900
 }
 
 # ---- Ingress / TLS ----
