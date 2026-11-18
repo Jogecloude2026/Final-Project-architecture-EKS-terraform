@@ -2,7 +2,7 @@ name: terraform deployment
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 permissions:
   id-token: write # required for OIDC.
@@ -24,102 +24,102 @@ jobs:
     name: terraform init & validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      # TEMPORARY: delete this step later
-      - name: check secret length
-        continue-on-error: true
-        run: echo "ARN length is ${#ARN}"
-        env:
-          ARN: ${{ secrets.AWS_OIDC_ARN }}
+    # TEMPORARY: delete this step later
+    - name: check secret length
+      continue-on-error: true
+      run: echo "ARN length is ${#ARN}"
+      env:
+        ARN: ${{ secrets.AWS_OIDC_ARN }}
 
-      # TEMPORARY: delete this step later
-      - name: show OIDC subject
-        continue-on-error: true
-        run: |
-          TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
-          echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+' | awk '{ while (length($0)%4) $0=$0"="; print }' | base64 -d | jq -r .sub
+    # TEMPORARY: delete this step later
+    - name: show OIDC subject
+      continue-on-error: true
+      run: |
+        TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
+        echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+' | awk '{ while (length($0)%4) $0=$0"="; print }' | base64 -d | jq -r .sub
 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        terraform_wrapper: false
 
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_OIDC_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - name: terraform init
-        run: terraform init
+    - name: terraform init
+      run: terraform init
 
-      - name: terraform fmt
-        run: terraform fmt -check -recursive
+    - name: terraform fmt
+      run: terraform fmt -check -recursive
 
-      - name: terraform validate
-        run: terraform validate
+    - name: terraform validate
+      run: terraform validate
 
   tfsec:
     name: security scan (tfsec)
-    needs: [init]
+    needs: [ init ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
-        with:
-          soft_fail: true
+    - name: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.3
+      with:
+        soft_fail: true
 
   sonar-scan:
     name: security scan (sonar-scan)
-    needs: [tfsec]
+    needs: [ tfsec ]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        continue-on-error: true
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-          args: >
-            -Dsonar.projectKey=Terraform-final-project
-            -Dsonar.projectName="Terraform-final-project"
-            -Dsonar.exclusions=**/.terraform/**,**/*.tfstate
-            -Dsonar.qualitygate.wait=true
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@v5
+      continue-on-error: true
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      with:
+        args: >
+          -Dsonar.projectKey=Terraform-final-project -Dsonar.projectName="Terraform-final-project" -Dsonar.exclusions=**/.terraform/**,**/*.tfstate -Dsonar.qualitygate.wait=true
 
   plan-apply:
     name: terraform plan and apply
-    needs: [sonar-scan]
+    needs: [ sonar-scan ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-          terraform_wrapper: false
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        terraform_wrapper: false
 
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_OIDC_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - name: terraform init
-        run: terraform init
+    - name: terraform init
+      run: terraform init
 
-      - name: terraform plan
-        run: terraform plan -out=tfplan
+    - name: import existing nginx release if present
+      continue-on-error: true
+      run: terraform import helm_release.nginx_ingress nginx-ingress/nginx-ingress
 
-      - name: terraform apply
-        run: terraform apply -auto-approve tfplan
+    - name: terraform plan
+      run: terraform plan -out=tfplan
 
+    - name: terraform apply
+      run: terraform apply -auto-approve tfplan
     # ---------------------------------------------------------------------------
     # DESTROY — commented out on purpose. To tear everything down, an admin
     # uncomments this job, pushes, then runs the workflow manually with
