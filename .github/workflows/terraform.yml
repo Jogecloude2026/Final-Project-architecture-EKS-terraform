@@ -126,6 +126,9 @@ jobs:
         aws eks update-kubeconfig --region eu-north-1 --name jogecloud-eks
         kubectl apply -f manifests/argocd-ingress.yaml
         kubectl -n argocd get ingress
+
+    - name: show argocd admin password
+      run: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
     # ---------------------------------------------------------------------------
     # DESTROY — commented out on purpose. To tear everything down, an admin
     # uncomments this job, pushes, then runs the workflow manually with
