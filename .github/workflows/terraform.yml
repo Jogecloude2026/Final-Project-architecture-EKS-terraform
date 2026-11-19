@@ -120,6 +120,12 @@ jobs:
 
     - name: terraform apply
       run: terraform apply -auto-approve tfplan
+
+    - name: apply argocd ingress
+      run: |
+        aws eks update-kubeconfig --region eu-north-1 --name jogecloud-eks
+        kubectl apply -f manifests/argocd-ingress.yaml
+        kubectl -n argocd get ingress
     # ---------------------------------------------------------------------------
     # DESTROY — commented out on purpose. To tear everything down, an admin
     # uncomments this job, pushes, then runs the workflow manually with
