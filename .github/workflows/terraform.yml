@@ -120,7 +120,6 @@ jobs:
           aws eks update-kubeconfig --region "$AWS_REGION" --name jogecloud-eks
           timeout 300 kubectl delete applications --all -n argocd --wait=true || true
           kubectl delete ingress --all -A --timeout=120s || true
-          kubectl delete svc -A --field-selector spec.type=LoadBalancer --timeout=120s || true
           kubectl delete pvc --all -A --timeout=120s || true
           sleep 90
       - name: terraform init
